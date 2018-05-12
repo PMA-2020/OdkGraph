@@ -5,7 +5,7 @@ Module attributes:
     cli: A routine for running a command-line interface
 """
 import argparse
-from typing import Iterable
+from typing import Iterable, List
 
 import networkx as nx
 import xlrd
@@ -36,13 +36,13 @@ class OdkGraph:
         self.node_lookup = {node.row_name: node for node in self.ordered_nodes}
         for node in self.ordered_nodes:
             unsorted_dependencies = [self.node_lookup[name] for name in
-                                     node.dependency_names]
+                                     node.dependency_counter]
             dependencies = sorted(unsorted_dependencies, key=lambda x: x.rowx)
             node.dependencies = dependencies
         self.network = self.generate_network()
 
     @staticmethod
-    def parse_ordered_nodes(path: str) -> list:
+    def parse_ordered_nodes(path: str) -> List[XlsFormRow]:
         """Parse nodes (rows) from an XlsForm.
 
         Args:
@@ -100,12 +100,12 @@ class OdkGraph:
         result = nx.algorithms.is_directed_acyclic_graph(self.network)
         return result
 
-    def isolates(self) -> list:
+    def isolates(self) -> List[XlsFormRow]:
         """Return a list of isolate nodes."""
         result = list(nx.isolates(self.network))
         return result
 
-    def terminal_nodes(self) -> list:
+    def terminal_nodes(self) -> List[XlsFormRow]:
         """Return a list of terminal nodes.
 
         A terminal node is a node with at least one in-edge and zero
@@ -130,7 +130,7 @@ class OdkGraph:
                     result.append(found)
         return result
 
-    def dependencies_from_nodes(self, nodes: Iterable) -> list:
+    def dependencies_from_nodes(self, nodes: Iterable) -> List[XlsFormRow]:
         """Get the sorted list of dependencies for input nodes.
 
         This routine gets all the dependencies for each node in the

@@ -8,6 +8,7 @@ Module attributes:
     ODK_VAR_REGEX_PROG: A compiled regex based on ODK_VAR_REGEX
     XlsFormRow: A class for representing an XlsForm row
 """
+from collections import Counter
 import re
 
 
@@ -18,11 +19,11 @@ ODK_VAR_REGEX_PROG = re.compile(ODK_VAR_REGEX)
 class XlsFormRow:
     """Class to hold information associated with a row in an XlsForm.
 
-    The instance attributes `dependency_names` and `dependencies` are
-    calculated. The `dependency_names` is a list of alphabetically
-    sorted names discovered through parsing the fields of this row. The
-    `dependencies` are the XlsFormRows, sorted according to the rowx
-    attribute.
+    The instance attributes `dependency_counter` and `dependencies` are
+    calculated. The `dependency_counter` is a Counter dictionary to
+    keep track of how many times the dependency appears in this
+    instance's data. The `dependencies` are the XlsFormRows, sorted
+    according to the rowx attribute.
 
     Instance attributes:
         rowx: The 0-indexed row in the survey tab where this row is
@@ -32,7 +33,7 @@ class XlsFormRow:
             are the values
         ancestors: The names of the groups and repeats that this entry
             is nested under, in order
-        dependency_names: The row_names of this row's dependencies
+        dependency_counter: A Counter dictionary of dependencies
         dependencies: The XlsFormRows associated with this row's
             dependencies.
     """
@@ -57,26 +58,26 @@ class XlsFormRow:
         self.row_dict = row_dict
         self.ancestors = ancestors
 
-        self.dependency_names = self.parse_dependencies()
+        self.dependency_counter = self.parse_dependencies()
         self.dependencies = []
 
-    def parse_dependencies(self) -> list:
+    def parse_dependencies(self) -> Counter:
         """Parse out dependency names from the fields of this row.
 
         Returns:
-            A list of the unique dependency names. It is sorted
-            alphabetically.
+            A Counter dictionary of dependencies.
         """
-        dependencies = set()
+        dependencies = Counter()
         for value in self.row_dict.values():
             found = ODK_VAR_REGEX_PROG.findall(value)
-            dependencies |= set(found)
+            this_counter = Counter(found)
+            dependencies.update(this_counter)
         if self.ancestors:
-            dependencies.add(self.ancestors[-1])
-        sorted_list = sorted(list(dependencies))
-        return sorted_list
+            immediate_ancestor = [self.ancestors[-1]]
+            dependencies.update(immediate_ancestor)
+        return dependencies
 
-    def dependency_pair_iter(self, self_first: bool = False):
+    def dependency_pair_iter(self, self_first: bool = False) -> tuple:
         """Iterate through the dependencies of this object.
 
         Args:
