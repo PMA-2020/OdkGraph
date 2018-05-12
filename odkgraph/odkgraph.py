@@ -16,11 +16,17 @@ from .xlsformrow import XlsFormRow
 class OdkGraph:
     """Class to represent the graph structure of an XlsForm.
 
+    Class attributes:
+        DIRECTED_TO_DEPENDENCY: True if and only if an edge points to
+            a dependency
+
     Instance attributes:
         ordered_nodes: A list of XlsFormRows
         node_lookup: A dictionary of ODK name key to XlsFormRow value
         network: The networkx.DiGraph object for this XlsForm
     """
+
+    DIRECTED_TO_DEPENDENCY = False
 
     def __init__(self, path: str):
         """Initialize an OdkGraph object.
@@ -78,6 +84,8 @@ class OdkGraph:
     def generate_network(self) -> nx.DiGraph:
         """Create a `networkx.DiGraph` object from this object.
 
+        Each node is added to a directed graph. Then the edges are
+        added.
         Returns:
             The `networkx.DiGraph` object representing this object
         """
@@ -87,7 +95,8 @@ class OdkGraph:
             # Possibly useful instead
             # graph.add_node(node, **node.row_dict)
         for node in self.ordered_nodes:
-            graph.add_edges_from(node.dependency_pair_iter())
+            iterator = node.dependency_pair_iter(self.DIRECTED_TO_DEPENDENCY)
+            graph.add_edges_from(iterator)
         return graph
 
     def simple_cycles(self) -> list:
@@ -130,8 +139,16 @@ class OdkGraph:
                     result.append(found)
         return result
 
-    def dependencies_from_nodes(self, nodes: Iterable) -> List[XlsFormRow]:
-        """Get the sorted list of dependencies for input nodes.
+    def successors(self, node: XlsFormRow) -> List[XlsFormRow]:
+        """Get the direct dependencies of input node."""
+        return list(self.network.successors(node))
+
+    def predecessors(self, node: XlsFormRow) -> List[XlsFormRow]:
+        """Get the nodes that depend on input node."""
+        return list(self.network.predecessors(node))
+
+    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) -> List[XlsFormRow]:
+        """Get the sorted list of all dependencies for input nodes.
 
         This routine gets all the dependencies for each node in the
         input iterable. The result is de-duped, sorted, and the input

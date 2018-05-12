@@ -82,7 +82,9 @@ class XlsFormRow:
 
         Args:
             self_first: If true, self comes first in the tuple,
-                otherwise the dependency comes first.
+                otherwise the dependency comes first. Returning self
+                first is equivalent to the edge being directed to the
+                dependency.
 
         Yields:
             A tuple of a dependency and self. The order is important
