@@ -99,6 +99,48 @@ class OdkGraph:
             graph.add_edges_from(iterator)
         return graph
 
+    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) -> List[XlsFormRow]:
+        """Get the sorted list of all dependencies for input nodes.
+
+        This routine gets all the dependencies for each node in the
+        input iterable. The result is de-duped, sorted, and the input
+        nodes are removed from that result.
+
+        Args:
+            nodes: An iterable of XlsFormRow objects.
+
+        Returns:
+            A list of nodes sorted by the row number.
+        """
+        node_set = set(nodes)
+        dependencies = set()
+        for node in node_set:
+            ancestors = nx.algorithms.dag.ancestors(self.network, node)
+            dependencies |= ancestors
+        diff = dependencies - node_set
+        sorted_nodes = sorted(list(diff), key=lambda x: x.rowx)
+        return sorted_nodes
+
+    def successors(self, node: XlsFormRow) -> List[XlsFormRow]:
+        """Get the direct dependencies of input node."""
+        result = list(self.network.successors(node))
+        return result
+
+    def predecessors(self, node: XlsFormRow) -> List[XlsFormRow]:
+        """Get the nodes that depend on input node."""
+        result = list(self.network.predecessors(node))
+        return result
+
+    def order(self):
+        """Return the number of nodes in the graph."""
+        result = self.network.order()
+        return result
+
+    def size(self, weight: str = None):
+        """Return the number of edges or total of all edge weights."""
+        result = self.network.size(weight)
+        return result
+
     def simple_cycles(self) -> list:
         """Return a list of cycles in the directed graph."""
         result = list(nx.simple_cycles(self.network))
@@ -138,36 +180,6 @@ class OdkGraph:
                     found = (node, dependency)
                     result.append(found)
         return result
-
-    def successors(self, node: XlsFormRow) -> List[XlsFormRow]:
-        """Get the direct dependencies of input node."""
-        return list(self.network.successors(node))
-
-    def predecessors(self, node: XlsFormRow) -> List[XlsFormRow]:
-        """Get the nodes that depend on input node."""
-        return list(self.network.predecessors(node))
-
-    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) -> List[XlsFormRow]:
-        """Get the sorted list of all dependencies for input nodes.
-
-        This routine gets all the dependencies for each node in the
-        input iterable. The result is de-duped, sorted, and the input
-        nodes are removed from that result.
-
-        Args:
-            nodes: An iterable of XlsFormRow objects.
-
-        Returns:
-            A list of nodes sorted by the row number.
-        """
-        node_set = set(nodes)
-        dependencies = set()
-        for node in node_set:
-            ancestors = nx.algorithms.dag.ancestors(self.network, node)
-            dependencies |= ancestors
-        diff = dependencies - node_set
-        sorted_nodes = sorted(list(diff), key=lambda x: x.rowx)
-        return sorted_nodes
 
     def __getitem__(self, key):
         """Support custom indexing.
