@@ -1,4 +1,4 @@
-"""This module generates a graph structure from an XlsForm.
+"""A module for generating a graph structure from an XlsForm.
 
 Module attributes:
     OdkGraph: Class for representing the graph structure
@@ -86,6 +86,7 @@ class OdkGraph:
 
         Each node is added to a directed graph. Then the edges are
         added.
+
         Returns:
             The `networkx.DiGraph` object representing this object
         """
@@ -99,7 +100,8 @@ class OdkGraph:
             graph.add_edges_from(iterator)
         return graph
 
-    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) -> List[XlsFormRow]:
+    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) \
+            -> List[XlsFormRow]:
         """Get the sorted list of all dependencies for input nodes.
 
         This routine gets all the dependencies for each node in the
@@ -162,8 +164,10 @@ class OdkGraph:
         A terminal node is a node with at least one in-edge and zero
         out-edges.
         """
-        gen = (n for n in self.network if self.network.out_degree(n) == 0 and
-               self.network.in_degree(n) > 0)
+        gen = (
+            n for n in self.network if
+            self.network.out_degree(n) == 0 and self.network.in_degree(n) > 0
+        )
         return list(gen)
 
     def forward_dependencies(self) -> list:
@@ -255,7 +259,3 @@ def cli():
     odkgraph = OdkGraph(args.xlsform)
     # TODO: Do something with the graph
     print(odkgraph)
-
-
-if __name__ == '__main__':
-    cli()

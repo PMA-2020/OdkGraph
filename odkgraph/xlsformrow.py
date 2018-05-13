@@ -1,4 +1,4 @@
-"""This module creates and analyzes XlsForm rows.
+"""A module for creating and analyzes XlsForm rows.
 
 A row represents a single question or calculate, or in other words, a
 data collection unit.
