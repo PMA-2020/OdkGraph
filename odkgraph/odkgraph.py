@@ -100,9 +100,11 @@ class OdkGraph:
             graph.add_edges_from(iterator)
         return graph
 
-    def all_dependencies_from_nodes(self, nodes: Iterable[XlsFormRow]) \
+    def all_dependencies_of(self, nodes: Iterable[XlsFormRow]) \
             -> List[XlsFormRow]:
         """Get the sorted list of all dependencies for input nodes.
+
+        This routine searches all generations.
 
         This routine gets all the dependencies for each node in the
         input iterable. The result is de-duped, sorted, and the input
@@ -123,15 +125,52 @@ class OdkGraph:
         sorted_nodes = sorted(list(diff), key=lambda x: x.rowx)
         return sorted_nodes
 
+    def all_nodes_dependent_on(self, nodes: Iterable[XlsFormRow]) \
+            -> List[XlsFormRow]:
+        """Get the sorted list of all nodes that depend on input nodes.
+
+        This routine searches all generations.
+
+        This routine gets all the nodes that depend on at least one
+        node from the input iterable. The result is de-duped, sorted,
+        and the input nodes are removed from that result.
+
+        Args:
+            nodes: An iterable of XlsformRow objects
+
+        Returns:
+            A list of nodes sorted by the row number
+        """
+        node_set = set(nodes)
+        dependents = set()
+        for node in node_set:
+            ancestors = nx.algorithms.dag.descendants(self.network, node)
+            dependents |= ancestors
+        diff = dependents - node_set
+        sorted_nodes = sorted(list(diff), key=lambda x: x.rowx)
+        return sorted_nodes
+
     def successors(self, node: XlsFormRow) -> List[XlsFormRow]:
-        """Get the direct dependencies of input node."""
+        """Get the direct dependencies of input node.
+
+        This only searches one generation away."""
         result = list(self.network.successors(node))
         return result
 
     def predecessors(self, node: XlsFormRow) -> List[XlsFormRow]:
-        """Get the nodes that depend on input node."""
+        """Get the nodes that depend directly on input node.
+
+        This only searches one generation away."""
         result = list(self.network.predecessors(node))
         return result
+
+    def number_edges(self) -> int:
+        """Return the number of edges."""
+        return self.size()
+
+    def number_nodes(self) -> int:
+        """Return the number of nodes."""
+        return self.order()
 
     def order(self):
         """Return the number of nodes in the graph."""
@@ -184,6 +223,14 @@ class OdkGraph:
                     found = (node, dependency)
                     result.append(found)
         return result
+
+    def excel_row(self, row: int) -> XlsFormRow:
+        """Get the graph node from the supplied Excel row."""
+        try:
+            item = next((i for i in self if i.rowx == row - 1))
+            return item
+        except StopIteration:
+            raise IndexError(f'No survey element on row {row}')
 
     def __getitem__(self, key):
         """Support custom indexing.
@@ -257,5 +304,6 @@ def cli():
     parser.add_argument('xlsform', help='The XlsForm to analyze.')
     args = parser.parse_args()
     odkgraph = OdkGraph(args.xlsform)
-    # TODO: Do something with the graph
-    print(odkgraph)
+    print(f'ODK graph based on "{args.xlsform}"')
+    print(f'Nodes: {odkgraph.number_nodes()}')
+    print(f'Edges: {odkgraph.number_edges()}')

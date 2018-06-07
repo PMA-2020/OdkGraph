@@ -118,5 +118,5 @@ class XlsFormRow:
 
     def __repr__(self):
         """Get a representation of this object."""
-        this_repr = f'<XlsFormRow: row {self.rowx}, name "{self.row_name}">'
+        this_repr = f'<XlsFormRow: row {self.rowx + 1}, name "{self.row_name}">'
         return this_repr
