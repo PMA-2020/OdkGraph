@@ -153,14 +153,16 @@ class OdkGraph:
     def successors(self, node: XlsFormRow) -> List[XlsFormRow]:
         """Get the direct dependencies of input node.
 
-        This only searches one generation away."""
+        This only searches one generation away.
+        """
         result = list(self.network.successors(node))
         return result
 
     def predecessors(self, node: XlsFormRow) -> List[XlsFormRow]:
         """Get the nodes that depend directly on input node.
 
-        This only searches one generation away."""
+        This only searches one generation away.
+        """
         result = list(self.network.predecessors(node))
         return result
 
