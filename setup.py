@@ -1,26 +1,61 @@
+import io
+import os
 from setuptools import setup, find_packages
 
-from odkgraph import __version__
+
+NAME = 'odkgraph'
+DESCRIPTION = 'Convert an XlsForm into a directed graph and analyze it'
+URL = 'https://github.com/jkpr/OdkGraph'
+EMAIL = 'jpringle@jhu.edu'
+AUTHOR = 'James K. Pringle'
+REQUIRES_PYTHON = '>=3.6.0'
+VERSION = None
 
 
-packages = find_packages()
+# What packages are required for this module to be executed?
+REQUIRED = [
+    'xlrd',
+    'networkx'
+]
 
 
+# ---------------------------------------------------------------------------- #
+here = os.path.abspath(os.path.dirname(__file__))
+
+
+# Import the README and use it as the long-description.
+# Note: this will only work if 'README.md' is present in the MANIFEST.in file!
+with io.open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = '\n' + f.read()
+
+
+# Load the package's __version__.py module as a dictionary.
+about = {}
+if not VERSION:
+    with open(os.path.join(here, NAME, '__version__.py')) as f:
+        exec(f.read(), about)
+else:
+    about['__version__'] = VERSION
+
+
+# Where the magic happens:
 setup(
-    name='odkgraph',
-    version=__version__,
-    author='James K. Pringle',
-    author_email='jpringle@jhu.edu',
-    url='http://www.pma2020.org',
-    packages=packages,
-    license='LICENSE.txt',
-    description='Convert an XlsForm into a directed graph and analyze it',
-    long_description=open('README.md').read(),
-    install_requires=[
-        'xlrd>=1.1.0',
-        'networkx>=2.1'
-    ],
+    name=NAME,
+    version=about['__version__'],
+    description=DESCRIPTION,
+    long_description=long_description,
+    long_description_content_type='text/markdown',
+    author=AUTHOR,
+    author_email=EMAIL,
+    python_requires=REQUIRES_PYTHON,
+    url=URL,
+    packages=find_packages(exclude=('tests',)),
+    install_requires=REQUIRED,
+    include_package_data=True,
+    license='MIT',
     classifiers=[
+        # Trove classifiers
+        # Full list: https://pypi.python.org/pypi?%3Aaction=list_classifiers
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
